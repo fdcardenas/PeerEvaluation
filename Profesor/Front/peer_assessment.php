@@ -125,6 +125,7 @@ else{
                         <li>
                             <a href="graficas.php"><i class="glyphicon glyphicon-stats fa-fww"></i> Gr&aacute;ficas</a>
                         </li>
+                        
                         <!--<li>
                             <a href="graficas.php"><i class="fa fa-wrench fa-fww"></i> Gr&aacute;ficas</a>
                         </li>

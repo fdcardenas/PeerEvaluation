@@ -95,9 +95,10 @@ else{
                             $num_equipo = $row['numeroEquipo'];
                             
                             
-                            $sql2 = "SELECT DISTINCT e.nombre "
+                            $sql2 = "SELECT DISTINCT e.nombre,e.codigo "
                             . "FROM estudiantetbl AS e "
-                            . "INNER JOIN entregasremitentes AS er ON er.codigoEstudiante=e.codigo "
+                            . "INNER JOIN resultados AS r ON e.codigo=r.codigoDestinatario "
+                            . "INNER JOIN entregasremitentes AS er ON er.id=r.idEntregaRemitente "
                             . "INNER JOIN assessment AS a ON a.id=er.idAssessment "
                             . "WHERE (a.estado='OFF' OR a.estado='DONE') AND er.numeroEquipo=$num_equipo AND a.id=$id_assess AND er.estadoEntrega='COMPLETED' "
                             . "ORDER BY e.nombre";
@@ -110,6 +111,7 @@ else{
                             
                             while($row2 = mysql_fetch_array($result2)){
                                 $respuesta['nombre'][$k][$j] = $row2['nombre'];
+                                $respuesta['codigo'][$k][$j] = $row2['codigo'];
                                 $k++;
                             }
                             

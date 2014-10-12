@@ -125,6 +125,7 @@ else{
                         <li>
                             <a class="active" href="graficas.php"><i class="glyphicon glyphicon-stats fa-fww"></i> Gr&aacute;ficas</a>
                         </li>
+                        
                         <!--<li>
                             <a href="tables.html"><i class="fa fa-table fa-fw"></i> Por definir</a>
                         </li>
@@ -173,7 +174,7 @@ else{
             
             
             
-            <div class="col-lg-4">
+                <div class="col-lg-4">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <i class="glyphicon glyphicon-cog fa-fw"></i> Especificaciones
@@ -196,13 +197,40 @@ else{
                                 <select id="integrante_equipo">
                                 </select>
                                 </div>
-                                
+                                <button type="button" id="generar_grafica" class="btn btn-primary">Generar Grafica</button>
                             </div>
                         </div>
                         <!-- /.panel-body -->
                     </div>
                     <!-- /.panel -->
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="glyphicon glyphicon-circle-arrow-down fa-fw"></i> Excel
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            
+                                <form method="POST" action="../Back/generar_excel_de_assessment.php" role="form" action="">
+                                    <div class="list-group">
+                                <label> Seleccione #Evaluaci&oacute;n que desea descargar: </label>
+                                <select name="no_excel" id="no_evaluacion_excel">
+                                </select>
+                                </div>
+                                    <div class="list-group">
+                            <button type="submit" id="descargar_excel" class="btn btn-primary pull-right">Descargar excel</button>
+                            </div>
+                             </form>
+
+                            
+                            </div>
+                        </div>
+                        <!-- /.panel-body -->
                     </div>
+                    <!-- /.panel -->
+                </div>
             </div>
             
             
@@ -233,7 +261,8 @@ else{
     $(document).ready(function(){
         
         cargar_datos_curso();
-        
+        cargar_numero_evaluaciones();
+        var grafica;
         //Carga el número de assessment realizados, los equipos que hicieron ese assessment y los miembros del equipo que lo hicieron.
         function cargar_datos_curso(){
             $.ajax({
@@ -256,7 +285,7 @@ else{
                     
                     var data=$.parseJSON(cadena);
                                         
-                    var grafica = new Morris.Bar({
+                    grafica = new Morris.Bar({
                         element: 'morris-bar-chart',
                         data: data,
                         xkey: 'criterio',
@@ -275,13 +304,15 @@ else{
                     $("#no_evaluacion").empty();
                     $("#no_evaluacion").append(cad_assess);
                     
+                    var id_assess,num_equipo,cod_estudiante;
+                    
                     $("#no_evaluacion").change(function(){
                         if($(this).val()=='todos'){
                             $("#no_equipo").empty();
                             $("#integrante_equipo").empty();
                         }
                         else{
-                            var id_assess = $(this).val();
+                            id_assess = $(this).val();
                             
                             var cad_equipo="<option value='todos'>Todos</option>";
                             
@@ -298,22 +329,35 @@ else{
                                     $("#integrante_equipo").empty();
                                 }
                                 else{
-                                    var num_equipo = $(this).val();
+                                    num_equipo = $(this).val();
                                     
                                     var cad_integrantes = "<option value='todos'>Todos</option>";
                                     
                                     for(i=0;i<h['n_estudiantes'][num_equipo-1];i++){
-                                        cad_integrantes = cad_integrantes + '<option value="'+h['nombre'][i][num_equipo-1]+'">'+h['nombre'][i][num_equipo-1]+'</option>';
+                                        cad_integrantes = cad_integrantes + '<option value="'+
+                                                h['codigo'][i][num_equipo-1]+'">'+
+                                                h['nombre'][i][num_equipo-1]+'</option>';
                                     }
                                     
                                     $("#integrante_equipo").empty();
                                     $("#integrante_equipo").append(cad_integrantes);
                                     
+                                    
+                                    $("#integrante_equipo").change(function(){
+                                        cod_estudiante = $(this).val();
+                                    });
                                 }
                             });
                             
                         }
+                        
                     });
+                    
+                    $("#generar_grafica").click(function(){
+                        generar_grafico(id_assess,num_equipo,cod_estudiante);
+                    });
+                    
+                    
                     
                     
                 }
@@ -334,6 +378,125 @@ else{
         }
         
         
+        function generar_grafico (idassess,num_equipo,cod_estudiante){
+            if($("#no_evaluacion").val()=="todos"){
+                mandar_caso(idassess,num_equipo,cod_estudiante,3);
+            }
+            else{
+                if($("#no_equipo").val()=="todos"){
+                    mandar_caso(idassess,num_equipo,cod_estudiante,2);
+                }
+                else{
+                    if($("#integrante_equipo").val()=="todos"){
+                        mandar_caso(idassess,num_equipo,cod_estudiante,1);
+                    }
+                    else{
+                        mandar_caso(idassess,num_equipo,cod_estudiante,0);
+                    }
+                }
+            }
+        }
+        
+        function mandar_caso(idassess,num_equipo,cod_estudiante,caso){
+            $.ajax({
+                type:"POST",
+                data:{idassess:idassess,num_equipo:num_equipo,cod_estudiante:cod_estudiante,caso:caso},
+                url:"../Back/cargar_resultados_estudiantes_grafica.php",
+                dataType:'json',
+                success: function(t){
+                if(t.exito=="exito_0"){
+                    grafica.setData($.parseJSON(t.cadena));
+                }
+                else if(t.exito=="exito_1"){
+                    grafica.setData($.parseJSON(t.cadena));
+                }
+                else if(t.exito=="exito_2"){
+                    grafica.setData($.parseJSON(t.cadena));
+                }
+                else if(t.exito=="exito_3"){
+                    grafica.setData($.parseJSON(t.cadena));
+                }
+                else{
+                    alert("Actualmente presentamos problemas técnicas, por favor inténtelo de nuevo.");
+                }
+                },
+                error: function(u){
+                    alert("Todo mal");
+                }
+            });
+        }
+        
+        function cargar_numero_evaluaciones(){
+            $.ajax({
+                type:"POST",
+                data:{},
+                url:"../Back/cargar_numero_evaluaciones.php",
+                dataType:'json',
+                success: function(h){
+                if(h.exito=="exito"){
+                    var cad_assess_excel="";
+                    var i,idassess_excel;
+                    
+                    for(i=0;i<h.num_de_assessment;i++){
+                        cad_assess_excel = cad_assess_excel+ '<option value="'+h['assess'][i]+'">'+h['assess'][i]+'</option>';
+                    }
+                    
+                    idassess_excel=h['assess'][0];
+                    
+                    $("#no_evaluacion_excel").empty();
+                    $("#no_evaluacion_excel").append(cad_assess_excel);
+                    
+                    /*$("#no_evaluacion_excel").change(function(){
+                        idassess_excel=$(this).val();
+                    });
+                    
+                    $("#descargar_excel").click(function(){
+                        generar_excel(idassess_excel);
+                    });
+                    */
+                    
+                    
+                }
+                else{
+                    alert("Actualmente presentamos problemas técnicas, por favor inténtelo de nuevo.");
+                }
+                },
+                error: function(u){
+                    alert("Todo mal");
+                }
+            });
+        }
+        
+        function generar_excel(idassess){
+            $.ajax({
+                type:"POST",
+                data:{idassess:idassess},
+                url:"../Back/generar_excel_de_assessment.php",
+                dataType:'json',
+                success: function(q){
+                if(q.exito=="exito"){
+
+                    //alert("exito");
+                    //alert(q.n_estudiantes);
+                    //alert(q.cadena);
+                    //alert(q.n_criterios);
+                }
+                else if(q.exito=="repuestas_vacio"){
+                    alert("Ningún estudiante ha respondido respondido la evaluación seleccionada.");
+                }
+                else if(q.exito=="criterio_vacio"){
+                    alert("No se han criterios para la rúbrica por el momento.");
+                }
+                else{
+                    alert("Actualmente presentamos problemas técnicas, por favor inténtelo de nuevo.");
+                }
+                },
+                error: function(u){
+                    alert("Todo mal");
+                }
+            });
+        }
+        
         //
         
     });
@@ -342,7 +505,31 @@ else{
 
 </body>
 
+<!-- About Morris Charts:
 
+Copyright (c) 2013, Olly Smith
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
 
 </html>
 

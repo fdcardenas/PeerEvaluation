@@ -119,9 +119,10 @@ else{
                         <li>
                             <a href="peer_assessment.php"><i class="glyphicon glyphicon-check fa-fw"></i> Peer Assesment</a>
                         </li>
-                        <li>
+                       <li>
                             <a href="graficas.php"><i class="glyphicon glyphicon-stats fa-fww"></i> Gr&aacute;ficas</a>
                         </li>
+                        
                         <!--
                         <li>
                             <a href="mostrar_rubrica.php"><i class="fa fa-wrench fa-fww"></i> Rubrica</a>
