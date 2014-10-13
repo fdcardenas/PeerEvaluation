@@ -376,7 +376,7 @@ else{
                             'fill' => array(
                             'type'  => PHPExcel_Style_Fill::FILL_SOLID,
                             'color' => array(
-                                    'argb' => 'ADEAEA')
+                                    'argb' => 'FFFFFF')
                             ),
                             'borders' => array(
                                 'left' => array(
